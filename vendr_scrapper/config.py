@@ -18,6 +18,7 @@ class Config:
     SCRAPE_CATEGORIES = [category.strip() for category in os.getenv('SCRAPE_CATEGORIES', '').split(',')]
     MAX_WORKER_THREADS = int(os.getenv('MAX_WORKER_THREADS'))
     USER_AGENT = UserAgent().random
+    VENDR_API_KEY = os.getenv("VENDR_API_KEY")
 
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

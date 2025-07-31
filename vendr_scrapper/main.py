@@ -1,11 +1,12 @@
-from db.database import Database
+from config import Config
+from vendr_api import VendrAPIClient
 
-db = Database()
-db.insert_product(
-    name='Test Product',
-    category='DevOps',
-    price_range='500$-700$',
-    description='Test Product Description'
-)
-print("Product inserted successfully")
-db.close()
+if __name__ == "__main__":
+    api_client = VendrAPIClient(api_key=Config.VENDR_API_KEY)
+    categories = api_client.get_categories(limit=5)
+
+    if categories:
+        for category in categories.get(...):
+            print(f"- {category['name']} (ID: {category['id']})")
+    else:
+        print("Не вдалося отримати категорії")
