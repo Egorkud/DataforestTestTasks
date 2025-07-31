@@ -1,6 +1,11 @@
-from config import Config
+from db.database import Database
 
-print("Categories:", Config.SCRAPE_CATEGORIES)
-print("Threads:", Config.MAX_WORKER_THREADS)
-print("DB:", Config.DB_NAME)
-print("User:", Config.USER_AGENT)
+db = Database()
+db.insert_product(
+    name='Test Product',
+    category='DevOps',
+    price_range='500$-700$',
+    description='Test Product Description'
+)
+print("Product inserted successfully")
+db.close()
