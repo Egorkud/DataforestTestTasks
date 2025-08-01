@@ -1,12 +1,10 @@
 from config import Config
-from vendr_api import VendrAPIClient
+from vendr_web import VendrWebScraper
 
 if __name__ == "__main__":
-    api_client = VendrAPIClient(api_key=Config.VENDR_API_KEY)
-    categories = api_client.get_categories(limit=5)
+    vendr_scraper = VendrWebScraper()
+    categories = Config.SCRAPE_CATEGORIES
 
-    if categories:
-        for category in categories.get(...):
-            print(f"- {category['name']} (ID: {category['id']})")
-    else:
-        print("Не вдалося отримати категорії")
+    for category in categories:
+        category_data = vendr_scraper.get_category_data(category)
+        print(category_data)
