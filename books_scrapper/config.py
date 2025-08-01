@@ -15,7 +15,6 @@ class Config:
     DB_PASSWORD = os.getenv('DB_PASSWORD')
 
     # Scraping
-    SCRAPE_CATEGORIES = [category.strip() for category in os.getenv('SCRAPE_CATEGORIES', '').split(',')]
     MAX_WORKER_THREADS = int(os.getenv('MAX_WORKER_THREADS'))
     USER_AGENT = UserAgent().random
 
