@@ -9,8 +9,8 @@ from config import Config
 
 
 class BookScraper:
-    def __init__(self, headless: bool = True):
-        self.headless = headless
+    def __init__(self):
+        self.headless = False
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch(headless=self.headless)
         self.page = self.browser.new_page()
@@ -101,19 +101,5 @@ class BookScraper:
             else:
                 next_page = None
 
+        self.close()
         return urls
-
-    def scrape_all_books(self, start_url: str) -> List[Dict]:
-        """
-        Return all books scraped from a given url
-
-        :param start_url: url to start from
-        """
-        all_data = []
-        urls = self.get_all_book_urls(start_url)
-        for idx, book_url in enumerate(urls, start=1):
-            time.sleep(self.timer)
-            print(f"[{idx}/{len(urls)}] Scraping: {book_url}")
-            data = self.get_book_data(book_url)
-            all_data.append(data)
-        return all_data

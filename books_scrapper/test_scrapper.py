@@ -1,19 +1,61 @@
+import multiprocessing
 from contextlib import contextmanager
+from typing import Any
 
+from config import Config
 from scrapper import BookScraper
 
-# TODO: implement add data to DB
-# TODO: implement thread scrapping
+
+def scrape_worker(book_urls: list[str]) -> list[Any] | None:
+    worker = BookScraper()
+    full_data = []
+    try:
+        for url in book_urls:
+            print(url)
+            try:
+                data = worker.get_book_data(url)
+                full_data.append(data)
+            except Exception as e:
+                print(f"Failed to scrape {url}: {e}")
+        return full_data
+    except Exception as e:
+        print(f"Failed to scrape: {e}")
+
 
 if __name__ == "__main__":
     @contextmanager
-    def book_scraper_context(headless=True):
-        scraper = BookScraper(headless)
+    def book_scraper_context():
+        worker = BookScraper()
         try:
-            yield scraper
+            yield worker
         finally:
-            scraper.close()
+            worker.close()
 
 
-    with book_scraper_context(headless=True) as scraper:
-        data = scraper.scrape_all_books("https://books.toscrape.com/")
+    with book_scraper_context() as scraper:
+        urls = scraper.get_all_book_urls("https://books.toscrape.com/")
+
+        print(f"Total books to scrape: {len(urls)}")
+
+        # Кількість потоків
+        num_workers = Config.MAX_WORKER_THREADS
+
+        # Розбиваємо список на рівні частини
+        chunk_size = (len(urls) + num_workers - 1) // num_workers
+        url_chunks = [urls[i:i + chunk_size] for i in range(0, len(urls), chunk_size)]
+
+        # Запуск обробки даних кожної книжки
+        with multiprocessing.Pool(processes=num_workers) as pool:
+            results_nested = pool.map(scrape_worker, url_chunks)
+
+        # Об'єднуємо списки результатів з кожного воркера
+        results = [item for sublist in results_nested for item in sublist]
+
+        # Only for testing
+        # TODO: add save to DB
+        import json
+
+        with open("books_data.json", "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+
+        print("All data saved")
