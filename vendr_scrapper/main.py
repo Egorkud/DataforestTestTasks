@@ -7,4 +7,5 @@ if __name__ == "__main__":
 
     for category in categories:
         category_data = vendr_scraper.get_category_data(category)
-        print(category_data)
+        subcategories = vendr_scraper.get_subcategories_urls(category_data)
+        print(subcategories)
