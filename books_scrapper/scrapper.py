@@ -1,9 +1,10 @@
 import re
 import time
-from typing import Dict, List
+from typing import Dict, List, Any
 from urllib.parse import urljoin
 
 from playwright.sync_api import sync_playwright
+from tqdm import tqdm
 
 from config import Config
 
@@ -82,6 +83,7 @@ class BookScraper:
 
         :param start_url: url to start from
         """
+        print("Starting collect all book url")
         urls = []
         next_page = start_url
 
@@ -103,3 +105,24 @@ class BookScraper:
 
         self.close()
         return urls
+
+    @staticmethod
+    def scrape_worker(book_urls: list[str]) -> list[Any] | None:
+        """
+        Scrape worker function
+
+        :param book_urls: List of urls to scrape
+        :return: Scraped book data from worker thread
+        """
+        worker = BookScraper()
+        full_data = []
+        try:
+            for url in tqdm(book_urls, desc="Worker scraping:"):
+                try:
+                    data = worker.get_book_data(url)
+                    full_data.append(data)
+                except Exception as e:
+                    print(f"Failed to scrape {url}: {e}")
+            return full_data
+        except Exception as e:
+            print(f"Failed to scrape: {e}")

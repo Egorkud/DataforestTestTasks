@@ -1,28 +1,9 @@
 import multiprocessing
 from contextlib import contextmanager
-from typing import Any
-
-from tqdm import tqdm
 
 from config import Config
 from db.database import Database
 from scrapper import BookScraper
-
-# TODO: make good refactor for usage
-def scrape_worker(book_urls: list[str]) -> list[Any] | None:
-    worker = BookScraper()
-    full_data = []
-    try:
-        for url in tqdm(book_urls, desc="Worker scraping:"):
-            try:
-                data = worker.get_book_data(url)
-                full_data.append(data)
-            except Exception as e:
-                print(f"Failed to scrape {url}: {e}")
-        return full_data
-    except Exception as e:
-        print(f"Failed to scrape: {e}")
-
 
 if __name__ == "__main__":
     @contextmanager
@@ -48,7 +29,7 @@ if __name__ == "__main__":
 
         # Запуск обробки даних кожної книжки
         with multiprocessing.Pool(processes=num_workers) as pool:
-            results_nested = pool.map(scrape_worker, url_chunks)
+            results_nested = pool.map(BookScraper.scrape_worker, url_chunks)
 
         # Об'єднуємо списки результатів з кожного воркера
         results = [item for sublist in results_nested for item in sublist]
