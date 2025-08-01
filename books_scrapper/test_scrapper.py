@@ -1,12 +1,19 @@
+from contextlib import contextmanager
+
 from scrapper import BookScraper
 
 # TODO: implement add data to DB
 # TODO: implement thread scrapping
-# TODO: scrap full website
-scraper = BookScraper(headless=False)
-url = "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-data = scraper.get_book_data(url)
 
-from pprint import pprint
+if __name__ == "__main__":
+    @contextmanager
+    def book_scraper_context(headless=True):
+        scraper = BookScraper(headless)
+        try:
+            yield scraper
+        finally:
+            scraper.close()
 
-pprint(data)
+
+    with book_scraper_context(headless=True) as scraper:
+        data = scraper.scrape_all_books("https://books.toscrape.com/")

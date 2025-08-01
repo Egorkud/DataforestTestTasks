@@ -17,6 +17,7 @@ class Config:
     # Scraping
     MAX_WORKER_THREADS = int(os.getenv('MAX_WORKER_THREADS'))
     USER_AGENT = UserAgent().random
+    TIMER = int(os.getenv('TIMER'))
 
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
