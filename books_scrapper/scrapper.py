@@ -10,7 +10,7 @@ from config import Config
 
 class BookScraper:
     def __init__(self):
-        self.headless = False
+        self.headless = True
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch(headless=self.headless)
         self.page = self.browser.new_page()

@@ -2,6 +2,8 @@ import multiprocessing
 from contextlib import contextmanager
 from typing import Any
 
+from tqdm import tqdm
+
 from config import Config
 from scrapper import BookScraper
 
@@ -10,8 +12,7 @@ def scrape_worker(book_urls: list[str]) -> list[Any] | None:
     worker = BookScraper()
     full_data = []
     try:
-        for url in book_urls:
-            print(url)
+        for url in tqdm(book_urls, desc="Worker scraping:"):
             try:
                 data = worker.get_book_data(url)
                 full_data.append(data)
@@ -44,18 +45,11 @@ if __name__ == "__main__":
         chunk_size = (len(urls) + num_workers - 1) // num_workers
         url_chunks = [urls[i:i + chunk_size] for i in range(0, len(urls), chunk_size)]
 
+        # TODO: add to DB
         # Запуск обробки даних кожної книжки
         with multiprocessing.Pool(processes=num_workers) as pool:
             results_nested = pool.map(scrape_worker, url_chunks)
 
         # Об'єднуємо списки результатів з кожного воркера
         results = [item for sublist in results_nested for item in sublist]
-
-        # Only for testing
-        # TODO: add save to DB
-        import json
-
-        with open("books_data.json", "w", encoding="utf-8") as f:
-            json.dump(results, f, indent=2, ensure_ascii=False)
-
         print("All data saved")
