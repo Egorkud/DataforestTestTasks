@@ -91,26 +91,46 @@ class VendrWebScraper:
 
             return price
 
+        data = []
         for product_url in tqdm(product_urls, desc="Getting product urls"):
             product_page = self.get_data_from_url(product_url)
             soup = BeautifulSoup(product_page, "lxml")
 
-            # Product name
-            product_name = (soup.find("div", class_="rt-Flex rt-r-fd-column rt-r-w sm:rt-r-w")
-                            .find("div", class_="rt-Flex rt-r-gap-2")
-                            .find("h1").text)
+            # Пропуск сторінок, які не парсяться lxml
+            try:
+                # Product name
+                product_name = (soup.find("div", class_="rt-Flex rt-r-fd-column rt-r-w sm:rt-r-w")
+                                .find("div", class_="rt-Flex rt-r-gap-2")
+                                .find("h1").text)
 
-            # High - Low prices
-            prices_block = (soup.find("div", class_="rt-Grid rt-r-gtc rt-r-ai-center rt-r-mt _rangeSlider_118fo_13")
-                            .find_all("span"))
-            high_price, low_price = clean_price_number(prices_block[1].text), clean_price_number(prices_block[0].text)
+                # High - Low prices
+                prices_block = (soup.find("div", class_="rt-Grid rt-r-gtc rt-r-ai-center rt-r-mt _rangeSlider_118fo_13")
+                                .find_all("span"))
+                price_high, price_low = clean_price_number(prices_block[1].text), clean_price_number(
+                    prices_block[0].text)
 
-            # Median price
-            median_price = clean_price_number(soup.find("div", class_="rt-Flex _rangeAverage_118fo_42").text.split()[1])
+                # Median price
+                price_median = clean_price_number(
+                    soup.find("div", class_="rt-Flex _rangeAverage_118fo_42").text.split()[1])
 
-            # Description
-            description = soup.find("div", class_="rt-Box _read-more-box__content_122o3_1").text
+                # Description
+                description = soup.find("div", class_="rt-Box _read-more-box__content_122o3_1").text
 
+                # Category + Subcategory
+                categories = (soup.find("div", class_="rt-Flex rt-r-ai-center rt-r-fw-wrap rt-r-cg-2 rt-r-rg-1")
+                              .find_all("div", class_="rt-Flex rt-r-ai-center rt-r-gap-2 rt-r-fs-0"))
+                category, subcategory = categories[-2].text, categories[-1].text
 
-            # TODO: add category + subcatogory to data
-            # TODO: add save to DB
+                data.append({
+                    "name": product_name,
+                    "category": category,
+                    "subcategory": subcategory,
+                    "price_high": price_high,
+                    "price_low": price_low,
+                    "price_median": price_median,
+                    "description": description,
+                })
+            except:
+                pass
+
+        return data
