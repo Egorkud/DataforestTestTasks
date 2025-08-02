@@ -5,7 +5,18 @@ if __name__ == "__main__":
     vendr_scraper = VendrWebScraper()
     categories = Config.SCRAPE_CATEGORIES
 
+    # TODO: add get data from each product
+    # TODO: add multithreading scrapping
+    # TODO: add multithreading one thread save to DB
     for category in categories:
-        category_data = vendr_scraper.get_category_data(category)
-        subcategories = vendr_scraper.get_subcategories_urls(category_data)
-        print(subcategories)
+        category_url = f"/categories/{category}"
+        category_data = vendr_scraper.get_category_data(category_url)
+        subcategories_urls = vendr_scraper.get_subcategories_urls(category_data)
+        subcategory_products_urls = vendr_scraper.get_subcategory_product_urls(subcategories_urls)
+
+        # TEST check scraped data
+        with open("subcategories_urls.txt", "a") as file:
+            file.write("\n".join(subcategories_urls))
+
+        with open("subcategory_products_urls.txt", "a") as file:
+            file.write("\n".join(subcategory_products_urls))
