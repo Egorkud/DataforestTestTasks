@@ -10,9 +10,10 @@ if __name__ == "__main__":
     # TODO: add multithreading one thread save to DB
     for category in categories:
         category_url = f"/categories/{category}"
-        category_data = vendr_scraper.get_category_data(category_url)
+        category_data = vendr_scraper.get_data_from_url(category_url)
         subcategories_urls = vendr_scraper.get_subcategories_urls(category_data)
         subcategory_products_urls = vendr_scraper.get_subcategory_product_urls(subcategories_urls)
+        products_data = vendr_scraper.get_product_data(subcategory_products_urls)
 
         # TEST check scraped data
         with open("subcategories_urls.txt", "a") as file:

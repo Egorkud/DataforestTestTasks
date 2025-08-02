@@ -19,11 +19,14 @@ class Database:
         create_query = """
                        CREATE TABLE IF NOT EXISTS products
                        (
-                           id          SERIAL PRIMARY KEY,
-                           name        TEXT NOT NULL,
-                           category    TEXT NOT NULL,
-                           price_range TEXT,
-                           description TEXT
+                           id           SERIAL PRIMARY KEY,
+                           name         TEXT  NOT NULL,
+                           category     TEXT  NOT NULL,
+                           subcategory  TEXT  NOT NULL,
+                           price_low    FLOAT NOT NULL,
+                           price_high   FLOAT NOT NULL,
+                           price_median FLOAT NOT NULL,
+                           description  TEXT
                        ); \
                        """
         self.cursor.execute(create_query)

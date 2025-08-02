@@ -17,14 +17,13 @@ class VendrWebScraper:
             "User-Agent": Config.USER_AGENT,
         }
 
-    def get_category_data(self, category: str) -> str | None:
+    def get_data_from_url(self, url: str) -> str | None:
         """
         Get category data
 
-        :param category: endpoint to get data from
-        :param params: parameters to pass to request
+        :param url: url to get data from
         """
-        url = f"{self.BASE_URL}{category}"
+        url = f"{self.BASE_URL}{url}"
         try:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
@@ -58,10 +57,10 @@ class VendrWebScraper:
         urls = []
         for subcategory in tqdm(subcategories_urls, desc="Getting subcategory product urls"):
             page = 1
-            while True:
+            while page < 2:  # 2 For faster testing (True)
                 clean_url = subcategory.split("?page=")[0]
                 data_page = f"{clean_url}?page={page}"
-                page_products_data = self.get_category_data(data_page)
+                page_products_data = self.get_data_from_url(data_page)
 
                 soup_page = BeautifulSoup(page_products_data, "lxml")
                 try:
@@ -74,3 +73,44 @@ class VendrWebScraper:
                     break
                 page += 1
         return urls
+
+    def get_product_data(self, product_urls: list[str]):
+
+        def clean_price_number(price: str) -> str:
+            """
+            Clean price number from different symbols
+
+            :param price: Price number
+            :return: Cleaned price number
+            """
+            if "$" in price:
+                price = price.replace("$", "")
+
+            if "," in price:
+                price = price.replace(",", "")
+
+            return price
+
+        for product_url in tqdm(product_urls, desc="Getting product urls"):
+            product_page = self.get_data_from_url(product_url)
+            soup = BeautifulSoup(product_page, "lxml")
+
+            # Product name
+            product_name = (soup.find("div", class_="rt-Flex rt-r-fd-column rt-r-w sm:rt-r-w")
+                            .find("div", class_="rt-Flex rt-r-gap-2")
+                            .find("h1").text)
+
+            # High - Low prices
+            prices_block = (soup.find("div", class_="rt-Grid rt-r-gtc rt-r-ai-center rt-r-mt _rangeSlider_118fo_13")
+                            .find_all("span"))
+            high_price, low_price = clean_price_number(prices_block[1].text), clean_price_number(prices_block[0].text)
+
+            # Median price
+            median_price = clean_price_number(soup.find("div", class_="rt-Flex _rangeAverage_118fo_42").text.split()[1])
+
+            # Description
+            description = soup.find("div", class_="rt-Box _read-more-box__content_122o3_1").text
+
+
+            # TODO: add category + subcatogory to data
+            # TODO: add save to DB
