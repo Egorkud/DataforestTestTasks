@@ -1,8 +1,9 @@
 import logging
+import queue
+import threading
 
 import requests
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 
 from config import Config
 
@@ -49,30 +50,55 @@ class VendrWebScraper:
 
     def get_subcategory_product_urls(self, subcategories_urls: list[str]) -> list[str]:
         """
-        Collect subcategory product urls from subcategory urls. Goes through each page
+        Get subcategory products urls, multithreading
 
-        :param subcategories_urls: URLs to get subcategory products
-        :return: List of subcategory product urls
+        :param subcategories_urls: List of subcategories urls
+        :return: Product urls
         """
-        urls = []
-        for subcategory in tqdm(subcategories_urls, desc="Getting subcategory product urls"):
-            page = 1
-            while True:
-                clean_url = subcategory.split("?page=")[0]
-                data_page = f"{clean_url}?page={page}"
-                page_products_data = self.get_data_from_url(data_page)
+        result_urls = []
+        result_lock = threading.Lock()
+        work_queue = queue.Queue()
 
-                soup_page = BeautifulSoup(page_products_data, "lxml")
+        for url in subcategories_urls:
+            work_queue.put(url)
+
+        def worker():
+            while True:
                 try:
-                    products_data = (soup_page.find("div",
-                                                    class_="rt-Grid rt-r-gtc-1 sm:rt-r-gtc-2 rt-r-ai-start rt-r-gap-5")
-                                     .find_all("a"))
-                    for product in products_data:
-                        urls.append(product.get("href"))
-                except:
+                    subcategory = work_queue.get(timeout=2)
+                except queue.Empty:
                     break
-                page += 1
-        return urls
+
+                page = 1
+                while True:
+                    clean_url = subcategory.split("?page=")[0]
+                    data_page = f"{clean_url}?page={page}"
+                    page_products_data = self.get_data_from_url(data_page)
+
+                    soup_page = BeautifulSoup(page_products_data, "lxml")
+                    try:
+                        products_data = (soup_page.find("div",
+                                                        class_="rt-Grid rt-r-gtc-1 sm:rt-r-gtc-2 rt-r-ai-start rt-r-gap-5")
+                                         .find_all("a"))
+                        with result_lock:
+                            for product in products_data:
+                                result_urls.append(product.get("href"))
+
+                    except:
+                        break
+                    page += 1
+                work_queue.task_done()
+
+        threads = []
+        for _ in range(Config.MAX_WORKER_THREADS):
+            t = threading.Thread(target=worker)
+            t.start()
+            threads.append(t)
+
+        for t in threads:
+            t.join()
+
+        return result_urls
 
     def get_product_data(self, product_url: str) -> dict[str, str] | None:
 

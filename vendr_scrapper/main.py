@@ -6,10 +6,6 @@ from vendr_web import VendrWebScraper
 from workers import product_queue, result_queue
 from workers import worker_saver, worker_scraper
 
-# TODO: Improve+refactor full code
-# TODO: Add docs if necessary
-# TODO: Improve process if possible
-
 if __name__ == "__main__":
     vendr_scraper = VendrWebScraper()
     database = Database()

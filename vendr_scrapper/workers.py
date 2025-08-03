@@ -1,8 +1,8 @@
 import queue
 import time
 
-from db.database import Database
 from config import Config
+from db.database import Database
 from vendr_web import VendrWebScraper
 
 product_queue = queue.Queue()
