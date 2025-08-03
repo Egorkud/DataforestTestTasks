@@ -31,12 +31,19 @@ class Database:
                        """
         self.cursor.execute(create_query)
 
-    def insert_product(self, name: str, category: str, price_range: str, description: str):
-        insert_query = """
-                       INSERT INTO products (name, category, price_range, description)
-                       VALUES (%s, %s, %s, %s); \
-                       """
-        self.cursor.execute(insert_query, (name, category, price_range, description))
+    def insert_product(self, item):
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("""
+                            INSERT INTO products (name, category, subcategory, price_low, price_high, price_median,
+                                                  description)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s); \
+                            """,
+                            (item['name'], item['category'], item['subcategory'], float(item['price_low']),
+                             float(item['price_high']), float(item['price_median']), item['description']))
+            self.conn.commit()
+        except Exception as e:
+            print(f"DB insert error: {e}")
 
     def close(self):
         self.cursor.close()
